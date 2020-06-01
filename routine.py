@@ -87,14 +87,14 @@ if __name__ == '__main__':
     # decide files to be processed in parallel
     increment = 8
     remove_files_option = True
-    first_date = "20190512"
+    first_date = "20190531"
     if remove_files_option:
         remove_file_flag = ' --remove-files'
     else:
         remove_file_flag = ' '
     input_path = output_path
     start_date = datetime.datetime.strptime(first_date, '%Y%m%d')
-    for d_ in range(19):
+    for d_ in range(2):
         try:
             date_ = (start_date + datetime.timedelta(days=d_)).strftime("%Y%m%d")
             start = datetime.datetime.now()
