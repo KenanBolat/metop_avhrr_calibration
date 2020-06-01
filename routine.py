@@ -62,6 +62,7 @@ def calibrate_brightness_temperature(channel, dataset):
 # initiate calibration process
 def run_calibration(file_):
     calibrated = []
+    print(file_)
     channel = file_.split("__")[1].split(".")[0]
     f = h5py.File(os.path.join(process_path, file_), 'r')
     ds = f[channel]
@@ -73,30 +74,34 @@ def run_calibration(file_):
     if channel in ['4', '5']:
         calibrated = calibrate_brightness_temperature(channel, ds[()])
     f.close()
+    os.remove(os.path.join(process_path, file_))
     # export calibrated channel data to an hdf file
     with h5py.File(os.path.join(output_path, file_), 'w') as h5file:
-        h5file.create_dataset('/' + str(channel), shape=calibrated.shape, dtype=np.dtype('int16'),
+        h5file.create_dataset('/' + str(channel),
+                              shape=calibrated.shape,
+                              dtype=np.dtype('int16'),
                               data=calibrated * 100)
 
 
 if __name__ == '__main__':
     # decide files to be processed in parallel
-    incr = 10
+    increment = 8
     remove_files_option = True
+    first_date = "20190512"
     if remove_files_option:
         remove_file_flag = ' --remove-files'
     else:
         remove_file_flag = ' '
     input_path = output_path
-    start_date = datetime.datetime.strptime("20190311", '%Y%m%d')
-    for d_ in range(60):
+    start_date = datetime.datetime.strptime(first_date, '%Y%m%d')
+    for d_ in range(19):
         try:
             date_ = (start_date + datetime.timedelta(days=d_)).strftime("%Y%m%d")
             start = datetime.datetime.now()
             files = glob.glob1(process_path, "eps_M01_{}_*.hdf".format(date_))
 
-            for f in range(0, len(files), incr):
-                files_in = files[f:f + incr]
+            for f in range(0, len(files), increment):
+                files_in = files[f:f + increment]
                 N = mp.cpu_count()
                 with mp.Pool(processes=N) as p:
                     results = p.map(run_calibration, [file_ for file_ in files_in])
